@@ -1,0 +1,329 @@
+#include <iostream>
+#include <string>
+#include <algorithm>
+#include <ctime>
+
+using namespace std;
+
+string mainDeck[52];
+
+string suits[4] = { "C","D","H","S" };
+
+string cards[13] = { "2","3","4","5","6","7","8","9","10","J","Q","K","A" };
+
+string Player[52], Dealer[52];
+
+int playerInd = 0, dealerInd = 0, deckIndex = 51;
+
+int playerWager = 20;
+
+pair<string, int> Points[13];
+
+void initAndShuffleDeck() {
+
+	for (int i = 0; i<4; i++) {
+
+		for (int j = 0; j<13; j++) {
+
+			mainDeck[13 * i + j] = cards[j] + suits[i];
+
+		}
+
+	}
+
+	srand(time(0));
+
+	random_shuffle(&mainDeck[0], &mainDeck[52]);
+
+}
+
+void printDeck() {
+
+	for (int i = 0; i<4; i++) {
+
+		for (int j = 0; j<13; j++) {
+
+			cout << mainDeck[13 * i + j] << " ";
+
+		}
+
+		cout << endl;
+
+	}
+
+}
+
+/*int askWager() {
+
+	int currBet;
+
+	cout << "How much do you want to bet? (max:" << playerWager << ") ";
+
+	cin >> currBet;
+
+	while (currBet>playerWager || currBet<0) {
+
+		cout << "Invalid Bet amount" << endl;
+
+		cout << "How much do you want to bet? (max:" << playerWager << ") ";
+
+		cin >> currBet;
+
+	}
+
+	return currBet; 
+
+}*/
+
+int cardToPoint(string card) {
+
+	card = card.substr(0, card.length() - 1);
+
+	for (int i = 0; i<13; i++) {
+
+		if (Points[i].first == card) {
+
+			return Points[i].second;
+
+		}
+
+	}
+
+}
+
+int getPointsPlayer() {
+
+	int sum = 0;
+
+	for (int i = 0; i<playerInd; i++) {
+
+		sum += cardToPoint(Player[i]);
+
+	}
+
+	return sum;
+
+}
+
+int getPointsDealer() {
+
+	int sum = 0;
+
+	for (int i = 0; i<dealerInd; i++) {
+
+		sum += cardToPoint(Dealer[i]);
+
+	}
+
+	return sum;
+
+}
+
+void drawCardsFirstTime() {
+
+	Player[playerInd++] = mainDeck[deckIndex--];
+
+	Player[playerInd++] = mainDeck[deckIndex--];
+
+	cout << "Player Cards: " << Player[playerInd - 1] << " " << Player[playerInd - 2];
+
+	Dealer[dealerInd++] = mainDeck[deckIndex--];
+
+	cout << "\tDealer Cards: " << Dealer[dealerInd - 1] << " |/|" << endl;
+
+	Dealer[dealerInd++] = mainDeck[deckIndex--];
+
+}
+
+bool endGame() {
+
+
+
+	cout << "Enter 0 to Quit else 1: ";
+
+	char command;
+
+	cin >> command;
+
+	if (command == '0') {
+
+		return true;
+
+	}
+
+	return false;
+
+}
+
+char getAction() {
+
+	cout << "S - Stand" << endl;
+
+	cout << "H - Hit" << endl;
+
+	cout << "Enter Command: ";
+
+	char command;
+
+	cin >> command;
+
+	if (command == 'H' || command == 'S') {
+
+		return command;
+
+	}
+	else {
+
+		cout << "Invalid command" << endl;
+
+		getAction();
+
+	}
+
+}
+
+void onHit() {
+
+	Player[playerInd++] = mainDeck[deckIndex--];
+
+	cout << "Card Drawn: " << Player[playerInd - 1] << endl;
+	
+
+
+}
+
+void restart() {
+
+	playerInd = 0;
+
+	dealerInd = 0;
+
+	deckIndex = 51;
+
+	initAndShuffleDeck();
+
+}
+
+void playGame() {
+
+
+
+	drawCardsFirstTime();
+
+	if (getPointsPlayer() == 21) {
+
+		if (endGame()) {
+
+			return;
+
+		}
+
+	}
+
+	while (getPointsPlayer() <= 21) {
+
+		char a = getAction();
+
+		if (a == 'H') {
+
+			onHit();
+
+		}
+
+		if (a == 'S') {
+
+			break;
+
+		}
+
+	}
+
+	if (getPointsPlayer()>21) {
+
+		cout << "Player Bust" << endl;
+
+	}
+	else {
+
+		if (getPointsDealer() <= 16) {
+
+			Dealer[dealerInd++] = mainDeck[deckIndex--];
+
+		}
+
+		if (getPointsDealer()>21) {
+
+			cout << "Dealer Bust" << endl;
+
+		}
+		else {
+
+			if (getPointsDealer() >= getPointsPlayer()) {
+
+				cout << "Player Lost" << endl;
+
+			}
+			else {
+
+				cout << "Player Won" << endl;
+
+			}
+
+		}
+
+	}
+
+	if (endGame()) {
+
+		return;
+
+	}
+	else {
+
+		restart();
+
+		playGame();
+
+	}
+
+}
+
+void initPoints() {
+
+	Points[0] = make_pair("2", 2);
+
+	Points[1] = make_pair("3", 3);
+
+	Points[2] = make_pair("4", 4);
+
+	Points[3] = make_pair("5", 5);
+
+	Points[4] = make_pair("6", 6);
+
+	Points[5] = make_pair("7", 7);
+
+	Points[6] = make_pair("8", 8);
+
+	Points[7] = make_pair("9", 9);
+
+	Points[8] = make_pair("10", 10);
+
+	Points[9] = make_pair("J", 10);
+
+	Points[10] = make_pair("Q", 10);
+
+	Points[11] = make_pair("K", 10);
+
+	Points[12] = make_pair("A", 11);
+
+}
+
+int main() {
+
+	initAndShuffleDeck();
+
+	initPoints();
+
+	playGame();
+
+}
